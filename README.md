@@ -109,7 +109,7 @@ P.S: I cannot conclude this blockchain was made from 100% purely functional code
 
 The detailed designs follows:
 
-<img src="https://github.com/ReshiAdavan/Catena/blob/master/imgs/actor-detailed.PNG" />
+<img src="https://github.com/ReshiAdavan/Catena/blob/master/imgs/actor-detailed.png" />
 
 - **Broker Actor** is responsible of managing the transactions. It can add a new transaction, read the pending transactions (the ones that are not yet included in a block), and clear the list of pending transactions.
 - **Miner Actor** is responsible of the mining process. It validates the proof of added nodes and executes the PoW algorithm to mine a new block. It is implemented as a state machine composed of two states (ready and busy) in order to handle mining concurrency - If the node is mining a block, it cannot start to mine a new one.
