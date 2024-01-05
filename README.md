@@ -1,20 +1,26 @@
 # Catena
 
-A Simple Actor-Based Blockchain built in Scala.
+A Simple, Lightweight, Actor-Based Distributed Blockchain built in Scala, using functional programming concepts and the actor model, in the Akka Framework.
 
 ### Inspiration
 
-After [CryptGO](https://github.com/ReshiAdavan/CryptGO), I wanted to look into web3.0, blockchain, decentralized systems, etc. So I decided to implement a round robin algorithm to decide between the many projects I could choose and it gave me blockchain (haha just kidding).
+After [CryptGO](https://github.com/ReshiAdavan/CryptGO), I wanted to look into web3.0, blockchain, decentralized systems, etc. So I decided to implement a round robin algorithm to decide between the many projects I could choose and it gave me a blockchain (haha just kidding).
 
-I thought the first thing I could tackle was a blockchain as it was similar in architecture to what I have created before. As with any project I gave it my best shot!
+I thought the first thing I could tackle was a blockchain as it was similar in architecture to some of the projects that I have created before. As with any project I gave it my best shot!
+
+The design decision of choosing Scala originated from an interview and take home assessment I received over Summer 2022. They asked me to complete a take home assessment, entirely in Scala, and if I knew the functional programming paradigm.
+
+Needless to say I was curious and decided to learn it for myself.
 
 Voila! Catena!
 
 ### Topics
 
-- Languages: Scala
-- Architectures: Actor-Based Blockchain
-- Concepts: PoW Algorithm, Transactions, Chains, Nodes
+- **Languages**: Scala
+- **Paradigm**: Functional (pure and higher order functions, lazy evaluation, currying, etc)
+- **Frameworks**: Akka
+- **Architectures**: Distributed Ledger, Actor-Based Blockchain
+- **Concepts**: PoW Algorithm, Transactions, Chains, Nodes
 
 ### Use It Yourself
 
@@ -53,7 +59,7 @@ To run the local source code mounting the local folder to the container `<branch
 When you stop the container and start it again, the code may need to be manually updated from the repo in case you are running a remote branch, or will compile the local code in case you are running in local mode. Of course a script on your end can automate this (I may or may not have done this).
 
 2.  Run the cluster of 3 nodes using the `docker-compose up` command in the root folder of the project.
-3.  You will need to host the API on any API platform (Postman, Insomnia, etc) and run the respective endpoints to interact with Scalachain nodes (it should just take time to play around with).
+3.  You will need to host the API on any API platform (Postman, Insomnia, etc) and run the respective endpoints to interact with Catena nodes (it should just take time to play around with).
 
 ### Architectures (In Detail)
 
@@ -86,5 +92,32 @@ The PoW algorithm is required to mine the blocks composing the blockchain. The i
 #### Node
 
 The Node is the server running our blockchain. It provides some REST API to interact with it and perform basic operations such as send a new transaction, get the list of pending transactions, mine a block, and get the current status of the blockchain.
+
+#### The Actor Model
+
+Catena has been implemented using the actor model through the use of the [Akka Framework](https://akka.io/).
+
+Hierarchy of actors:
+
+<img src="https://github.com/ReshiAdavan/Catena/blob/master/imgs/actor-hierarchy.PNG" />
+
+Overall design:
+
+<img src="https://github.com/ReshiAdavan/Catena/blob/master/imgs/actor-design.PNG" />
+
+P.S: I cannot conclude this blockchain was made from 100% purely functional code because there is some state managed in the blockchain and FP requires that functions are stateless. It would be a mix of functional and conventional code we are mostly familar with.
+
+The detailed designs follows:
+
+<img src="https://github.com/ReshiAdavan/Catena/blob/master/imgs/actor-detailed.PNG" />
+
+- **Broker Actor** is responsible of managing the transactions. It can add a new transaction, read the pending transactions (the ones that are not yet included in a block), and clear the list of pending transactions.
+- **Miner Actor** is responsible of the mining process. It validates the proof of added nodes and executes the PoW algorithm to mine a new block. It is implemented as a state machine composed of two states (ready and busy) in order to handle mining concurrency - If the node is mining a block, it cannot start to mine a new one.
+- **Blockchain Actor** is responsible of managing the chain. It manages the addition of new blocks, and provides information about the chain: the last index, the last hash, and the status of the chain itself. This is a _Persistent Actor_, so it keeps a journal of events and saves a snapshot of the state of the chain when a new block is added. If the node goes down, when it is up again the Blockchain Actor can restore the status of the chain loading the last snapshot.
+- **Node Actor** is on the top of the hierarchy of actors: it manages all the operations executed by the other actors, and it is the junction point between the API and the business logic implemented inside the actors.
+- **ClusterManager Actor** is the manager of the cluster. Its in charge of everything cluster related, such as return the current active members of the cluster.
+- **ClusterListener Actor** listens to the events that happen in the cluster - a member is up/down, etc. - and logs it for debugging purpose.
+
+---
 
 If you made it this far, congrats! That concludes Catena's README.
